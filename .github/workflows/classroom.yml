@@ -1,0 +1,50 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Test Bank Account
+      id: test-bank-account
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test Bank Account
+        setup-command: pip install -r requirements.txt
+        command: pytest tests/test_bankaccount.py -v
+        timeout: 10
+        max-score: 4
+    - name: Test Pythagorean Theorem
+      id: test-pythagorean-theorem
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test Pythagorean Theorem
+        setup-command: pip install -r requirements.txt
+        command: pytest tests/test_pythagoreantheorem.py -v
+        timeout: 10
+        max-score: 4
+    - name: Test Student
+      id: test-student
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test Student
+        setup-command: pip install -r requirements.txt
+        command: 'pytest tests/test_student.py -v '
+        timeout: 10
+        max-score: 4
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TEST-BANK-ACCOUNT_RESULTS: "${{steps.test-bank-account.outputs.result}}"
+        TEST-PYTHAGOREAN-THEOREM_RESULTS: "${{steps.test-pythagorean-theorem.outputs.result}}"
+        TEST-STUDENT_RESULTS: "${{steps.test-student.outputs.result}}"
+      with:
+        runners: test-bank-account,test-pythagorean-theorem,test-student
